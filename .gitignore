@@ -16,6 +16,7 @@ docx_text_extract.xml
 docx-extracted.txt
 *.xlsm
 *.pdf
+!Пример/Примеры_продавливание_Пособие.pdf
 *.dwg
 *.bak
 Untitled

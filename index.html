@@ -312,11 +312,13 @@
               Скачать Word
             </a>
           </div>
+          <div id="primerPdfWrap" style="width: 100%; height: 80vh; min-height: 600px; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
+            <p id="primerPdfPlaceholder" style="color: #64748b; padding: 24px; text-align: center;">Загрузка…</p>
+          </div>
           <iframe
             id="primerPdf"
-            src="Пример/Примеры_продавливание_Пособие.pdf"
             title="Пример — PDF"
-            style="width: 100%; height: 80vh; min-height: 600px; border: none; display: block;"
+            style="width: 100%; height: 80vh; min-height: 600px; border: none; display: none;"
           ></iframe>
         </div>
       </div>
@@ -325,7 +327,7 @@
     <div class="main-inner">
     <div class="page-title">
       <h2>Калькулятор</h2>
-      <p>Введите исходные данные и нажмите «Рассчитать». Привязка отверстий и арматуры — от граней колонны. Схему можно скачать в DXF.</p>
+      <p>Введите исходные данные и нажмите «Рассчитать». Схему можно скачать в DXF.</p>
     </div>
     <div class="calc-sub-tabs">
       <button type="button" class="calc-sub-tab active" data-calc-tab="kolonna">Колонна</button>
@@ -807,5 +809,25 @@
   <script src="calc-info-messages.js"></script>
   <script src="calc-rsn-table.js"></script>
   <script src="app.js"></script>
+  <script>
+    (function () {
+      var pdfUrl = 'Пример/Примеры_продавливание_Пособие.pdf';
+      var wrap = document.getElementById('primerPdfWrap');
+      var placeholder = document.getElementById('primerPdfPlaceholder');
+      var iframe = document.getElementById('primerPdf');
+      if (!wrap || !iframe) return;
+      fetch(pdfUrl, { method: 'HEAD' }).then(function (r) {
+        if (r.ok) {
+          iframe.src = pdfUrl;
+          iframe.style.display = 'block';
+          placeholder.style.display = 'none';
+        } else {
+          placeholder.textContent = 'Файл пособия не найден на сервере. Добавьте Примеры_продавливание_Пособие.pdf в папку Пример в репозитории и переопубликуйте сайт.';
+        }
+      }).catch(function () {
+        placeholder.textContent = 'Файл пособия не найден. Добавьте PDF в папку Пример в репозитории.';
+      });
+    })();
+  </script>
 </body>
 </html>
