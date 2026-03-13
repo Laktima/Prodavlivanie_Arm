@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Расчёт на продавливание — Калькулятор</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8fafc;
+      color: #334155;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+    }
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 24px 0;
+      flex-shrink: 0;
+    }
+    .sidebar-brand {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 20px;
+    }
+    .sidebar-brand h1 { font-size: 1.1rem; font-weight: 600; color: #fff; }
+    .sidebar-brand span { font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px; }
+    .sidebar-nav { padding: 0 12px; }
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: 8px;
+      margin-bottom: 2px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .sidebar-nav a:hover { color: #e2e8f0; background: rgba(255,255,255,0.06); }
+    .sidebar-nav a.active { color: #6366f1; background: rgba(99, 102, 241, 0.12); }
+    .main { flex: 1; padding: 28px 32px 40px; overflow-x: auto; }
+    .main .panel { display: none; }
+    .main .panel.active { display: block; }
+    .header {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 20px 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .header h1 { font-size: 1.35rem; font-weight: 600; color: #fff; }
+    .header p { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+    .main-inner { max-width: 1200px; margin: 0 auto; }
+    .page-title { margin-bottom: 24px; }
+    .page-title h2 { font-size: 1.4rem; font-weight: 600; color: #0f172a; }
+    .page-title p { font-size: 0.875rem; color: #64748b; margin-top: 6px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
+    }
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    label { display: block; font-size: 0.8125rem; font-weight: 500; color: #475569; margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      background: #fff;
+    }
+    input:focus, select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12); }
+    .row { display: flex; gap: 14px; }
+    .row > * { flex: 1; }
+    button.primary {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    button.primary:hover { background: #4f46e5; }
+    .sketch-card { grid-column: 1 / -1; }
+    .sketch-wrap {
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      text-align: center;
+    }
+    .sketch-title { font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 12px; }
+    .sketch-svg { display: block; width: 100%; max-width: 720px; height: auto; margin: 0 auto; border-radius: 4px; }
+    .sketch-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: #64748b;
+      justify-content: center;
+    }
+    .sketch-legend span { display: flex; align-items: center; gap: 6px; }
+    .leg-col { width: 12px; height: 12px; background: #fff; border: 2px solid #cbd5e1; border-radius: 2px; }
+    .leg-contour-calc { width: 12px; height: 12px; border: 2px solid rgb(255, 0, 0); border-radius: 2px; background: transparent; }
+    .leg-contour-fact { width: 12px; height: 12px; border: 2px solid rgb(255, 127, 0); border-radius: 2px; background: transparent; }
+    .leg-contour-15 { width: 12px; height: 12px; border: 2px solid #94a3b8; border-radius: 2px; background: transparent; }
+    .leg-edge { width: 14px; border-top: 2px dashed #2563eb; }
+    .leg-hole { width: 12px; height: 12px; background: #f59e0b; border-radius: 2px; opacity: 0.9; }
+    .leg-arm { width: 8px; height: 8px; background: #0d9488; border-radius: 50%; }
+    .calc-sub-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .calc-sub-tab {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      font-family: inherit;
+    }
+    .calc-sub-tab:hover { color: #475569; }
+    .calc-sub-tab.active { color: #6366f1; border-bottom-color: #6366f1; }
+    .hidden-for-alpha { display: none !important; }
+    .calc-sub-panel { display: none; }
+    .calc-sub-panel.active { display: block; }
+    .column-type-label { font-size: 0.9rem; font-weight: 600; color: #0f172a; margin-top: 10px; margin-bottom: 0; }
+    .result-card { grid-column: 1 / -1; }
+    .result-content { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+    @media (max-width: 700px) { .result-content { grid-template-columns: 1fr; } }
+    #result {
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #334155;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      min-height: 200px;
+    }
+    #result.result-two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 600px) { #result.result-two-cols { grid-template-columns: 1fr; } }
+    #result .result-placeholder { margin: 0; color: #64748b; }
+    #result .result-col { font-family: 'Consolas', 'SF Mono', monospace; white-space: pre-wrap; word-break: break-word; }
+    #result.ok { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
+    #result.err { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+    #circ_result {
+      white-space: pre-wrap;
+      font-family: 'Consolas', 'SF Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #334155;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      min-height: 200px;
+    }
+    #circ_result.ok { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
+    #circ_result.err { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+    #wall_result {
+      white-space: pre-wrap;
+      font-family: 'Consolas', 'SF Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #334155;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      min-height: 200px;
+    }
+    #wall_result.ok { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
+    #wall_result.err { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+    .result-right { display: flex; flex-direction: column; gap: 12px; }
+    .result-right .cap { font-size: 0.75rem; font-weight: 600; color: #64748b; }
+    .btn-outline {
+      padding: 10px 16px;
+      font-size: 0.875rem;
+      background: #fff;
+      color: #6366f1;
+      border: 1px solid #6366f1;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+    }
+    .btn-outline:hover { background: #eef2ff; }
+    .hole-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 12px; }
+    .hole-row label.hole-cap { grid-column: 1 / -1; font-size: 0.8rem; color: #64748b; }
+    .hole-row input { margin-bottom: 0; }
+    .hole-row .btn-remove { padding: 6px 10px; font-size: 0.75rem; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 4px; cursor: pointer; }
+    .step-checks { margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.8rem; }
+    .step-checks .check-ok { color: #15803d; }
+    .step-checks .check-err { color: #b91c1c; }
+    .step-checks p { margin: 4px 0; }
+    #armFields.hidden { opacity: 0.5; pointer-events: none; }
+    .first-bar-caption { margin-top: 8px; font-size: 0.85rem; font-weight: 600; color: #0d9488; }
+    .calc-params-card { grid-column: 1 / -1; }
+    .calc-info-card { grid-column: 1 / -1; }
+    .calc-params-panel { padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; overflow-x: auto; }
+    .calc-params-empty { font-size: 0.875rem; color: #94a3b8; }
+    .calc-params-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; margin-top: 12px; }
+    .calc-params-split.single { grid-template-columns: 1fr; }
+    .calc-params-split.single .calc-params-right { display: none; }
+    .calc-params-left { min-width: 0; }
+    .calc-params-right { min-width: 0; padding: 16px; background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 8px; }
+    .calc-params-right-placeholder { font-size: 0.875rem; color: #64748b; margin: 0; }
+    .calc-params-table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 0.875rem; margin-top: 0; table-layout: auto; }
+    .calc-params-table td { padding: 10px 16px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    .calc-params-table td:first-child { font-weight: 600; color: #334155; white-space: nowrap; min-width: 180px; }
+    .calc-params-table td:nth-child(2) { font-family: 'Consolas', 'SF Mono', monospace; color: #0f172a; min-width: 140px; font-size: 0.9rem; }
+    .calc-params-table td:nth-child(3) { color: #64748b; font-size: 0.8125rem; line-height: 1.5; min-width: 320px; }
+    .calc-info-panel { padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; }
+    .calc-info-empty { font-size: 0.875rem; color: #94a3b8; }
+    .calc-info-list { display: flex; flex-direction: column; gap: 10px; }
+    .calc-info-msg { padding: 12px 16px; border-radius: 6px; font-size: 0.875rem; line-height: 1.5; border-left: 4px solid; }
+    .calc-info-msg.ok { background: #f0fdf4; border-color: #22c55e; color: #166534; }
+    .calc-info-msg.warning { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
+    .calc-info-msg.error { background: #fef2f2; border-color: #ef4444; color: #b91c1c; }
+    .arm-tab.active { color: #6366f1; border-bottom-color: #6366f1 !important; }
+    .example-content-card { max-width: 900px; }
+    .example-content { font-size: 0.9375rem; line-height: 1.65; color: #334155; }
+    .example-content h3 { font-size: 1.1rem; margin: 1.2em 0 0.5em; color: #0f172a; }
+    .example-content h4 { font-size: 1rem; margin: 1em 0 0.4em; color: #1e293b; }
+    .example-content p { margin: 0.6em 0; }
+    .example-content .formula, .example-content code { background: #f1f5f9; padding: 0.15em 0.4em; border-radius: 4px; font-family: 'Consolas', 'SF Mono', monospace; font-size: 0.9em; }
+    .example-content .formula { display: block; padding: 12px 16px; margin: 10px 0; text-align: center; border: 1px solid #e2e8f0; }
+    .example-content img { max-width: 100%; height: auto; border-radius: 6px; border: 1px solid #e2e8f0; margin: 12px 0; }
+    .example-content ul, .example-content ol { margin: 0.5em 0; padding-left: 1.5em; }
+    .example-content table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; }
+    .example-content th, .example-content td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
+    .example-content th { background: #f8fafc; font-weight: 600; color: #475569; }
+    .example-placeholder { color: #64748b; font-size: 0.9rem; }
+    #rsnTable { min-width: 640px; }
+    #rsnTable th { padding: 12px 16px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #334155; text-align: left; }
+    #rsnTable td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    #rsnTable input[type="number"] { width: 100%; min-width: 140px; max-width: 200px; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
+    #rsnTable .rsn-kb-cell { font-family: 'Consolas', 'SF Mono', monospace; font-size: 0.9rem; color: #0f172a; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>Продавливание</h1>
+      <span>СП 63.13330.2018</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-link" data-panel="obuchenie">Обучение</a>
+      <a href="#" class="nav-link" data-panel="primer">Пример</a>
+      <a href="#" class="nav-link active" data-panel="kalkulyator">Калькулятор</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div id="panel-obuchenie" class="panel">
+      <div class="main-inner" style="padding-top: 24px;">
+        <div class="page-title">
+          <h2>Обучение</h2>
+          <p>Раздел в разработке.</p>
+        </div>
+      </div>
+    </div>
+    <div id="panel-primer" class="panel">
+      <div class="main-inner" style="padding-top: 24px;">
+        <div class="page-title">
+          <h2>Пример</h2>
+          <p>Материалы по расчёту на продавливание. Просмотр в браузере и скачивание в PDF или Word.</p>
+        </div>
+        <div class="card" style="grid-column: 1 / -1; padding: 0; overflow: hidden;">
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; padding: 12px 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+            <a href="Пример/Примеры_продавливание_Пособие.pdf" download="Примеры_продавливание_Пособие.pdf" class="btn-outline" style="text-decoration: none;">
+              Скачать PDF
+            </a>
+            <a href="Пример/Примеры_продавливание_Пособие.docx" download="Примеры_продавливание_Пособие.docx" class="btn-outline" style="text-decoration: none;">
+              Скачать Word
+            </a>
+          </div>
+          <iframe
+            id="primerPdf"
+            src="Пример/Примеры_продавливание_Пособие.pdf"
+            title="Пример — PDF"
+            style="width: 100%; height: 80vh; min-height: 600px; border: none; display: block;"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+    <div id="panel-kalkulyator" class="panel active">
+    <div class="main-inner">
+    <div class="page-title">
+      <h2>Калькулятор</h2>
+      <p>Введите исходные данные и нажмите «Рассчитать». Привязка отверстий и арматуры — от граней колонны. Схему можно скачать в DXF.</p>
+    </div>
+    <div class="calc-sub-tabs">
+      <button type="button" class="calc-sub-tab active" data-calc-tab="kolonna">Колонна</button>
+      <button type="button" class="calc-sub-tab hidden-for-alpha" data-calc-tab="kruglaya">Колонна круглая</button>
+      <button type="button" class="calc-sub-tab hidden-for-alpha" data-calc-tab="stena">Стена</button>
+    </div>
+    <div id="calcTabKolonna" class="calc-sub-panel active">
+    <div class="grid">
+      <section class="card">
+        <h2 class="card-title">Колонна</h2>
+        <div class="row">
+          <div><label>Ax, мм</label><input type="number" id="Ax" value="500" min="1"></div>
+          <div><label>Ay, мм</label><input type="number" id="Ay" value="800" min="1"></div>
+        </div>
+        <p id="columnTypeLabel" class="column-type-label">Колонна</p>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Плита</h2>
+        <div class="row">
+          <div><label>Толщина h, мм</label><input type="number" id="h" value="220" min="1"></div>
+          <div><label>Защитный слой ax, мм</label><input type="number" id="ax" value="30" min="0"></div>
+          <div><label>Защитный слой ay, мм</label><input type="number" id="ay" value="30" min="0"></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Материалы</h2>
+        <div class="row">
+          <div>
+            <label>Бетон</label>
+            <select id="beton">
+              <option value="B15">B15</option><option value="B20">B20</option><option value="B25">B25</option>
+              <option value="B30" selected>B30</option><option value="B35">B35</option><option value="B40">B40</option>
+              <option value="B45">B45</option><option value="B50">B50</option>
+            </select>
+          </div>
+          <div>
+            <label>Арматура</label>
+            <select id="armatura">
+              <option value="А240" selected>А240</option><option value="А400">А400</option><option value="А500">А500</option>
+            </select>
+          </div>
+          <div>
+            <label>Диаметр стержней, мм</label>
+            <select id="diam">
+              <option value="6" selected>6</option><option value="8">8</option><option value="10">10</option>
+              <option value="12">12</option><option value="14">14</option><option value="16">16</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div><label>γb1</label><input type="number" id="gb1" value="1" min="0.1" step="0.01"></div>
+          <div><label>mkp</label><input type="number" id="mkp" value="1" min="0.1" step="0.01"></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Усилия</h2>
+        <div class="row">
+          <div><label>N, т (вертикальная сила)</label><input type="number" id="F" value="80" step="0.01"></div>
+          <div><label>p, т/м² (отпор)</label><input type="number" id="p" value="0" step="0.01"></div>
+        </div>
+        <div class="row">
+<div><label>Mloc,x, т·м</label><input type="number" id="Mlocx" value="13" step="0.01"></div>
+            <div><label>Mloc,y, т·м</label><input type="number" id="Mlocy" value="5.7" step="0.01"></div>
+        </div>
+        <div class="row">
+          <div><label>Учитывать Mx</label><select id="useMx"><option value="Нет">Нет</option><option value="Да" selected>Да</option></select></div>
+          <div><label>Учитывать My</label><select id="useMy"><option value="Нет">Нет</option><option value="Да" selected>Да</option></select></div>
+        </div>
+      </section>
+      <section class="card hidden-for-alpha" id="rsnTableCard">
+        <h2 class="card-title">Перебор РСН</h2>
+        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 12px;">Таблица для перебора сочетаний РСН. Значения N, Mx, My задаются вручную; kb (коэф. исп. по бетону) считается по аналогии с расчётом в Excel. В основной расчёт не передаётся.</p>
+        <div class="calc-params-panel" style="overflow-x: auto;">
+          <table id="rsnTable" class="calc-params-table">
+            <thead>
+              <tr>
+                <th>Наименование</th>
+                <th>N (т)</th>
+                <th>Mx (т·м)</th>
+                <th>My (т·м)</th>
+                <th>kb (коэф.исп. по бетону)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-rsn="РСН1"><td>РСН1</td><td><input type="number" id="rsn_N_1" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_Mx_1" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_My_1" step="0.01" placeholder="—"></td><td id="rsn_kb_1" class="rsn-kb-cell">—</td></tr>
+              <tr data-rsn="РСН4"><td>РСН4</td><td><input type="number" id="rsn_N_4" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_Mx_4" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_My_4" step="0.01" placeholder="—"></td><td id="rsn_kb_4" class="rsn-kb-cell">—</td></tr>
+              <tr data-rsn="РСН5"><td>РСН5</td><td><input type="number" id="rsn_N_5" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_Mx_5" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_My_5" step="0.01" placeholder="—"></td><td id="rsn_kb_5" class="rsn-kb-cell">—</td></tr>
+              <tr data-rsn="РСН6"><td>РСН6</td><td><input type="number" id="rsn_N_6" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_Mx_6" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_My_6" step="0.01" placeholder="—"></td><td id="rsn_kb_6" class="rsn-kb-cell">—</td></tr>
+              <tr data-rsn="РСН7"><td>РСН7</td><td><input type="number" id="rsn_N_7" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_Mx_7" step="0.01" placeholder="—"></td><td><input type="number" id="rsn_My_7" step="0.01" placeholder="—"></td><td id="rsn_kb_7" class="rsn-kb-cell">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Колонна у края плиты</h2>
+        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 12px;">Отключите сторону контура, если колонна примыкает к краю.</p>
+        <div class="row">
+          <div><label><input type="checkbox" id="edgeLeft"> Слева</label></div>
+          <div><label><input type="checkbox" id="edgeRight"> Справа</label></div>
+          <div><label><input type="checkbox" id="edgeBottom"> Снизу</label></div>
+          <div><label><input type="checkbox" id="edgeTop"> Сверху</label></div>
+        </div>
+        <div id="x_cx_cy_Row" class="row" style="margin-top: 10px; display: none; align-items: flex-end;">
+          <div id="x_cxWrap" style="display: none; flex: 1;">
+            <label for="x_cx">x_cx, мм — до края по оси Х</label>
+            <input type="number" id="x_cx" value="500" min="0" step="1" placeholder="500" title="При «Слева» — от колонны влево; при «Справа» — от колонны вправо">
+            <p id="x_cx_hint" class="edge-bc-hint" style="font-size: 0.8rem; margin: 4px 0 0 0; min-height: 1.2em;"></p>
+          </div>
+          <div id="x_cyWrap" style="display: none; flex: 1;">
+            <label for="x_cy">x_cy, мм — до края по оси Y</label>
+            <input type="number" id="x_cy" value="0" min="0" step="1" placeholder="0" title="При «Снизу» — от колонны вниз; при «Сверху» — от колонны вверх">
+            <p id="x_cy_hint" class="edge-bc-hint" style="font-size: 0.8rem; margin: 4px 0 0 0; min-height: 1.2em;"></p>
+          </div>
+        </div>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Дополнительно</h2>
+        <label><input type="checkbox" id="multiContour" checked> Проверка по нескольким контурам (8.1.47)</label>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Поперечная арматура</h2>
+        <div style="margin-bottom: 12px;">
+          <label>Корректировка кол-ва стержней</label>
+          <input type="number" id="xCountCorrection" value="0" step="1" placeholder="0" title="Положительное — увеличить Х, отрицательное — уменьшить (учитывается в расчёте)">
+        </div>
+        <div class="arm-tabs" style="display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0;">
+          <button type="button" class="arm-tab active" data-tab="auto" style="padding: 8px 16px; border: none; background: transparent; color: #64748b; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;">Автоматическая</button>
+          <button type="button" class="arm-tab" data-tab="manual" style="padding: 8px 16px; border: none; background: transparent; color: #64748b; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;">Ручная</button>
+        </div>
+        <div id="armFields">
+          <div id="armTabAuto" class="arm-tab-panel">
+            <label style="margin-bottom: 8px;">Х — кол-во срезов стержней:</label>
+            <div id="xAlongGroup" style="margin-bottom: 8px;">
+              <label style="display: inline-flex; align-items: center; margin-right: 16px;"><input type="radio" name="xAlong" value="a" checked> X вдоль a</label>
+              <label style="display: inline-flex; align-items: center;"><input type="radio" name="xAlong" value="b"> X вдоль b</label>
+            </div>
+            <label>Шаг вдоль X, мм</label>
+            <input type="number" id="stepX" value="60" min="1">
+            <label>Шаг вдоль Y, мм</label>
+            <input type="number" id="stepY" value="60" min="1">
+            <p style="font-size: 0.75rem; color: #64748b; margin-top: 6px;">Зона 1,5·h0 от грани колонны. Формулы по методике расстановки (Excel «Автоматическая_поперечка_»).</p>
+          </div>
+          <div id="armTabManual" class="arm-tab-panel" style="display: none;">
+            <label>Шаг вдоль X, мм</label>
+            <input type="number" id="stepX_manual" value="60" min="1">
+            <label>Шаг вдоль Y, мм</label>
+            <input type="number" id="stepY_manual" value="60" min="1">
+            <label>Отступ до 1-го стержня вдоль a, мм</label>
+            <input type="number" id="offsetFirstA_manual" value="75" min="0" step="1" placeholder="h0/3…h0×2/3">
+            <label>Отступ до 1-го стержня вдоль b, мм</label>
+            <input type="number" id="offsetFirstB_manual" value="75" min="0" step="1" placeholder="h0/3…h0×2/3">
+            <p style="font-size: 0.75rem; color: #64748b; margin-top: 8px;">Граница расстановки (последний стержень) задаётся автоматически: 1,5·h0 от грани колонны.</p>
+          </div>
+          <div id="stepChecks" class="step-checks"></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Отверстия</h2>
+        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">Размеры отверстия и расстояние от центра колонны до центра отверстия (мм). 0 — центр совпадает. Знак: + справа/сверху, − слева/снизу.</p>
+        <select id="holeShow" style="margin-bottom: 12px;">
+          <option value="Нет" selected>Нет</option>
+          <option value="Да">Да</option>
+        </select>
+        <div id="holeList"></div>
+        <button type="button" id="addHoleBtn" class="btn-outline" style="margin-top: 8px;">Добавить отверстие</button>
+      </section>
+
+      <section class="card sketch-card">
+        <h2 class="card-title">Эскиз</h2>
+        <div class="sketch-wrap">
+          <p class="sketch-title">Эскиз: вид сверху. Масштаб подстраивается под колонну, расчётный контур (h0), отверстия и арматуру.</p>
+          <svg id="diagram" class="sketch-svg" viewBox="0 0 720 720" preserveAspectRatio="xMidYMid meet"></svg>
+          <div id="firstBarDistanceCaption" class="first-bar-caption"></div>
+          <div class="sketch-legend">
+            <span><i class="leg-col"></i> Колонна</span>
+            <span><i class="leg-contour-calc"></i> Расчётный контур (h0/2)</span>
+            <span><i class="leg-contour-fact"></i> Фактический контур продавливания (h0)</span>
+            <span><i class="leg-contour-15"></i> 1,5·h0</span>
+            <span><i class="leg-edge"></i> Край плиты</span>
+            <span><i class="leg-hole"></i> Отверстие</span>
+            <span><i class="leg-arm"></i> Поперечная арматура</span>
+          </div>
+          <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 12px;">
+            <label><input type="checkbox" id="optArm" checked> Арматура</label>
+            <label><input type="checkbox" id="optContourCalc" checked> Расчётный контур</label>
+            <label><input type="checkbox" id="optContourFact" checked> Фактический контур продавливания</label>
+            <label><input type="checkbox" id="optContour15" checked> 1,5·h0</label>
+            <label><input type="checkbox" id="optSlabEdge" checked> Край плиты</label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card calc-info-card">
+        <h2 class="card-title">Информация и предупреждения</h2>
+        <div id="calcInfoPanel" class="calc-info-panel">
+          <p class="calc-info-empty">Нажмите «Рассчитать» — здесь появятся проверки, предупреждения и рекомендации.</p>
+          <div id="calcInfoList" class="calc-info-list" style="display: none;"></div>
+        </div>
+      </section>
+
+      <section class="card calc-params-card">
+        <h2 class="card-title">Расчётные параметры</h2>
+        <div id="calcParamsPanel" class="calc-params-panel">
+          <p class="calc-params-empty">Нажмите «Рассчитать» — здесь появятся значения Rbt, h0, Ub, Fb,ult и др.</p>
+          <div id="calcParamsSplit" class="calc-params-split" style="display: none;">
+            <div class="calc-params-left">
+              <table id="calcParamsTable" class="calc-params-table"></table>
+            </div>
+            <div class="calc-params-right">
+              <p class="calc-params-right-placeholder">Новый расчёт (будет добавлен)</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-actions">
+          <button type="button" id="btnCalc" class="primary">Рассчитать</button>
+        </div>
+      </section>
+
+      <section class="card result-card">
+        <h2 class="card-title">Результаты расчёта (отчёт)</h2>
+        <div class="result-content">
+          <div id="result">
+            <p class="result-placeholder">Нажмите «Рассчитать» — здесь появится отчёт.</p>
+          </div>
+          <div class="result-right">
+            <p class="cap">Скачать</p>
+            <button type="button" id="btnReportTxt" class="btn-outline">Скачать отчёт (.txt)</button>
+            <button type="button" id="btnDxf" class="btn-outline">Скачать эскиз (DXF)</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    </div>
+    <div id="calcTabKruglaya" class="calc-sub-panel hidden-for-alpha">
+      <div class="grid">
+        <section class="card">
+          <h2 class="card-title">Колонна круглая</h2>
+          <div><label>D, мм (диаметр колонны)</label><input type="number" id="circ_D" value="400" min="1"></div>
+        </section>
+        <section class="card">
+          <h2 class="card-title">Плита</h2>
+          <div class="row">
+            <div><label>Толщина h, мм</label><input type="number" id="circ_h" value="200" min="1"></div>
+            <div><label>Защитный слой ax, мм</label><input type="number" id="circ_ax" value="30" min="0"></div>
+            <div><label>Защитный слой ay, мм</label><input type="number" id="circ_ay" value="30" min="0"></div>
+          </div>
+        </section>
+        <section class="card">
+          <h2 class="card-title">Материалы</h2>
+          <div class="row">
+            <div>
+              <label>Бетон</label>
+              <select id="circ_beton">
+                <option value="B15">B15</option><option value="B20">B20</option><option value="B25">B25</option>
+                <option value="B30" selected>B30</option><option value="B35">B35</option><option value="B40">B40</option>
+                <option value="B45">B45</option><option value="B50">B50</option>
+              </select>
+            </div>
+            <div>
+              <label>Арматура</label>
+              <select id="circ_armatura">
+                <option value="А240" selected>А240</option><option value="А400">А400</option><option value="А500">А500</option>
+              </select>
+            </div>
+            <div>
+              <label>Диаметр стержней d, мм</label>
+              <select id="circ_d">
+                <option value="6">6</option><option value="8">8</option><option value="10" selected>10</option>
+                <option value="12">12</option><option value="14">14</option><option value="16">16</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div><label>γb1</label><input type="number" id="circ_gb1" value="1" min="0.1" step="0.01"></div>
+            <div><label>mkp</label><input type="number" id="circ_mkp" value="1" min="0.1" step="0.01"></div>
+          </div>
+          <div class="row">
+            <div><label>Шаг стержней ssw, мм</label><input type="number" id="circ_ssw" value="75" min="1" placeholder="≤ 0.25·D"></div>
+            <div><label>Кол-во стержней в контуре nsw</label><input type="number" id="circ_nsw" value="2" min="0" placeholder="по пирамиде продавливания"></div>
+          </div>
+        </section>
+        <section class="card">
+          <h2 class="card-title">Усилия</h2>
+          <div class="row">
+            <div><label>N, кН (вертикальная сила)</label><input type="number" id="circ_F" value="500" step="0.01"></div>
+            <div><label>p, т/м² (отпор)</label><input type="number" id="circ_p" value="0" step="0.01"></div>
+          </div>
+          <div class="row">
+            <div><label>Mx, кН·м</label><input type="number" id="circ_Mx" value="10" step="0.01"></div>
+            <div><label>My, кН·м</label><input type="number" id="circ_My" value="10" step="0.01"></div>
+          </div>
+          <div class="row">
+            <div><label>Учитывать Mx</label><select id="circ_useMx"><option value="Нет">Нет</option><option value="Да" selected>Да</option></select></div>
+            <div><label>Учитывать My</label><select id="circ_useMy"><option value="Нет">Нет</option><option value="Да" selected>Да</option></select></div>
+          </div>
+        </section>
+        <section class="card sketch-card">
+          <h2 class="card-title">Эскиз</h2>
+          <div class="sketch-wrap">
+            <p class="sketch-title">Эскиз: вид сверху. Круглая колонна и расчётный контур продавливания (на расстоянии h0 от грани колонны).</p>
+            <svg id="circ_diagram" class="sketch-svg" viewBox="0 0 720 720" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="sketch-legend">
+              <span><i class="leg-col" style="border-radius: 50%; width: 14px; height: 14px;"></i> Колонна D</span>
+              <span><i class="leg-contour-calc" style="border-radius: 50%; width: 14px; height: 14px;"></i> Расчётный контур (h0)</span>
+              <span><i class="leg-contour-15" style="border-radius: 50%; width: 14px; height: 14px;"></i> 1,5·h0</span>
+            </div>
+          </div>
+        </section>
+        <section class="card calc-info-card">
+          <h2 class="card-title">Информация и предупреждения</h2>
+          <div id="circInfoPanel" class="calc-info-panel">
+            <p class="calc-info-empty">Введите данные — здесь появятся проверки и рекомендации.</p>
+            <div id="circInfoList" class="calc-info-list" style="display: none;"></div>
+          </div>
+        </section>
+        <section class="card calc-params-card">
+          <h2 class="card-title">Расчётные параметры</h2>
+          <div id="circParamsPanel" class="calc-params-panel">
+            <p class="calc-params-empty">Параметры обновляются при изменении данных.</p>
+            <table id="circParamsTable" class="calc-params-table" style="display: none;"></table>
+          </div>
+        </section>
+        <section class="card">
+          <div class="card-actions">
+            <button type="button" id="circ_btnCalc" class="primary">Рассчитать</button>
+          </div>
+        </section>
+        <section class="card result-card">
+          <h2 class="card-title">Результат расчёта (отчёт)</h2>
+          <div class="result-content">
+            <div class="result-text">
+              <pre id="circ_result">Нажмите «Рассчитать» — здесь появится отчёт по круглой колонне.</pre>
+            </div>
+            <div class="result-right">
+              <p class="cap">Скачать</p>
+              <button type="button" id="circ_btnReportTxt" class="btn-outline">Скачать отчёт (.txt)</button>
+              <button type="button" id="circ_btnDxf" class="btn-outline">Скачать эскиз (DXF)</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div id="calcTabStena" class="calc-sub-panel hidden-for-alpha">
+      <div class="grid">
+        <section class="card">
+          <h2 class="card-title">Тип контура</h2>
+          <select id="wall_type">
+            <option value="torec_mid">Торец в середине плиты</option>
+            <option value="torec_edge">Торец на краю плиты</option>
+            <option value="ugol">Угол стены</option>
+          </select>
+        </section>
+        <section class="card" id="wallCardTorec">
+          <h2 class="card-title">Стена / Пилон (торец)</h2>
+          <div><label>Толщина торца t1, мм</label><input type="number" id="wall_t1" value="300" min="1"></div>
+          <div id="wall_c_row" style="display: none;"><label>Консоль c, мм</label><input type="number" id="wall_c" value="300" min="0"></div>
+        </section>
+        <section class="card" id="wallCardUgol" style="display: none;">
+          <h2 class="card-title">Угол стены</h2>
+          <div class="row">
+            <div><label>a1, мм (толщина по X)</label><input type="number" id="wall_a1" value="200" min="1"></div>
+            <div><label>a2, мм (толщина по Y)</label><input type="number" id="wall_a2" value="200" min="1"></div>
+          </div>
+        </section>
+        <section class="card">
+          <h2 class="card-title">Плита</h2>
+          <div class="row">
+            <div><label>Толщина h, мм</label><input type="number" id="wall_h" value="200" min="1"></div>
+            <div><label>Защитный слой ax, мм</label><input type="number" id="wall_ax" value="30" min="0"></div>
+            <div><label>Защитный слой ay, мм</label><input type="number" id="wall_ay" value="30" min="0"></div>
+          </div>
+        </section>
+        <section class="card">
+          <h2 class="card-title">Материалы</h2>
+          <div class="row">
+            <div>
+              <label>Бетон</label>
+              <select id="wall_beton">
+                <option value="B15">B15</option><option value="B20">B20</option><option value="B25">B25</option>
+                <option value="B30" selected>B30</option><option value="B35">B35</option><option value="B40">B40</option>
+                <option value="B45">B45</option><option value="B50">B50</option>
+              </select>
+            </div>
+            <div>
+              <label>Арматура</label>
+              <select id="wall_armatura">
+                <option value="А240">А240</option><option value="А400">А400</option><option value="А500" selected>А500</option>
+              </select>
+            </div>
+            <div>
+              <label>Диаметр стержней d, мм</label>
+              <select id="wall_d">
+                <option value="6">6</option><option value="8">8</option><option value="10" selected>10</option>
+                <option value="12">12</option><option value="14">14</option><option value="16">16</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div><label>γb1</label><input type="number" id="wall_gb1" value="1" min="0.1" step="0.01"></div>
+            <div><label>mkp</label><input type="number" id="wall_mkp" value="1" min="0.1" step="0.01"></div>
+          </div>
+          <div class="row">
+            <div><label>Шаг ssw, мм</label><input type="number" id="wall_ssw" value="60" min="1"></div>
+            <div><label>Кол-во стержней nsw</label><input type="number" id="wall_nsw" value="2" min="0"></div>
+          </div>
+        </section>
+        <section class="card">
+          <h2 class="card-title">Усилия</h2>
+          <div class="row">
+            <div><label>N, кН</label><input type="number" id="wall_F" value="500" step="0.01"></div>
+            <div><label>p, т/м² (отпор)</label><input type="number" id="wall_p" value="0" step="0.01"></div>
+          </div>
+          <div class="row" id="wall_My_row">
+            <div><label>My, кН·м</label><input type="number" id="wall_My" value="10" step="0.01"></div>
+            <div><label>Учитывать My</label><select id="wall_useMy"><option value="Нет">Нет</option><option value="Да" selected>Да</option></select></div>
+          </div>
+        </section>
+        <section class="card sketch-card">
+          <h2 class="card-title">Эскиз</h2>
+          <div class="sketch-wrap">
+            <p class="sketch-title">Вид сверху: контур продавливания у стены (торец или угол).</p>
+            <svg id="wall_diagram" class="sketch-svg" viewBox="0 0 720 720" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="sketch-legend">
+              <span><i class="leg-col"></i> Стена/пилон</span>
+              <span><i class="leg-contour-calc"></i> Расчётный контур</span>
+            </div>
+          </div>
+        </section>
+        <section class="card calc-info-card">
+          <h2 class="card-title">Информация и предупреждения</h2>
+          <div id="wallInfoPanel" class="calc-info-panel">
+            <p class="calc-info-empty">Введите данные — здесь появятся проверки.</p>
+            <div id="wallInfoList" class="calc-info-list" style="display: none;"></div>
+          </div>
+        </section>
+        <section class="card calc-params-card">
+          <h2 class="card-title">Расчётные параметры</h2>
+          <div id="wallParamsPanel" class="calc-params-panel">
+            <p class="calc-params-empty">Параметры обновляются при изменении данных.</p>
+            <table id="wallParamsTable" class="calc-params-table" style="display: none;"></table>
+          </div>
+        </section>
+        <section class="card">
+          <div class="card-actions">
+            <button type="button" id="wall_btnCalc" class="primary">Рассчитать</button>
+          </div>
+        </section>
+        <section class="card result-card">
+          <h2 class="card-title">Результат расчёта (отчёт)</h2>
+          <div class="result-content">
+            <div class="result-text">
+              <pre id="wall_result">Нажмите «Рассчитать» — здесь появится отчёт по стене.</pre>
+            </div>
+            <div class="result-right">
+              <p class="cap">Скачать</p>
+              <button type="button" id="wall_btnReportTxt" class="btn-outline">Скачать отчёт (.txt)</button>
+              <button type="button" id="wall_btnDxf" class="btn-outline">Скачать эскиз (DXF)</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    </div>
+    </div>
+  </main>
+
+  <script src="calc-data.js"></script>
+  <script src="calc-circular.js"></script>
+  <script src="calc-wall.js"></script>
+  <script src="poperechka-from-excel.js"></script>
+  <script src="poperechka-step-block.js"></script>
+  <script src="arm-placement.js"></script>
+  <script src="punching-ub-holes.js"></script>
+  <script src="calc.js"></script>
+  <script src="calc-params-rows.js"></script>
+  <script src="calc-info-messages.js"></script>
+  <script src="calc-rsn-table.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
